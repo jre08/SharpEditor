@@ -184,38 +184,49 @@ namespace SharpEditor
                 Math.Min(startPos.Y, currentPos.Y),
                 Math.Abs(startPos.X - currentPos.X),
                 Math.Abs(startPos.Y - currentPos.Y));
+                
         }
 
-        private void canevas_MouseDown(object sender, MouseEventArgs e)
+        private void PictureBox1_MouseDown(object sender, MouseEventArgs e)
         {
             currentPos = startPos = e.Location;
             drawing = true;
         }
 
-        private void canevas_MouseMove(object sender, MouseEventArgs e)
+        private void PictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
             currentPos = e.Location;
-            if (drawing) canevas.Invalidate();
+            if (drawing) pictureBox1.Invalidate();
         }
 
-        private void canevas_MouseUp(object sender, MouseEventArgs e)
+        private void PictureBox1_MouseUp(object sender, MouseEventArgs e)
         {
             if (drawing)
             {
                 drawing = false;
                 var rc = getRectangle();
                 if (rc.Width > 0 && rc.Height > 0) rectangles.Add(rc);
-                canevas.Invalidate();
+                pictureBox1.Invalidate();
             }
         }
 
-        private void canevas_Paint(object sender, PaintEventArgs e)
+        private void PictureBox1_Paint(object sender, PaintEventArgs e)
         {
             if (rectangles.Count > 0) e.Graphics.DrawRectangles(Pens.Black, rectangles.ToArray());
             if (drawing) e.Graphics.DrawRectangle(Pens.Red, getRectangle());
         }
 
-        */
+         
+
+        void PictureBox_Paint(object sender, PaintEventArgs e)
+        {
+    Rectangle = new Rectangle(x, y, width, height);
+    Pen = new Pen(Color.Crimson, 1);
+    e.Graphics.DrawRectangle(Pen, Rectangle);
+        }
+
+    */
+        
         private void PictureBox1_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left & trckbrEdit.Value == 1)
@@ -281,13 +292,14 @@ namespace SharpEditor
                 g.FillRectangle(b, DrawRect);
                 g.Dispose();
                 //objNewBmp.Save("c:\temp\s" & ".tif", Imaging.ImageFormat.Tiff)
-                pictureBox1.Image = objNewBmp;
+                pictureBox1.Image = objBmp;
                 //cboFrameEdit.Items.Add(curF)
                 g.Dispose();
                 objBmp.Dispose();
                 //objNewBmp.Dispose()
 
                 rubberBanding = false;
+                pictureBox1.Invalidate();
 
                 //savemouse()
 
@@ -303,9 +315,9 @@ namespace SharpEditor
             }
 
         }
+        
 
-
-
+    
 
         #endregion
 
