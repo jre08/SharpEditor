@@ -414,6 +414,60 @@ namespace SharpEditor
         }
 
 
+/*
+private void myPrintDocument2_PrintPage(System.Object sender, System.Drawing.Printing.PrintPageEventArgs e)
+
+        {
+
+            Bitmap myBitmap1 = new Bitmap(pictureBox1.Width, pictureBox1.Height);
+
+            pictureBox1.DrawToBitmap(myBitmap1, new Rectangle(0, 0, pictureBox1.Width, pictureBox1.Height));
+
+            e.Graphics.DrawImage(myBitmap1, 0, 0);
+
+            myBitmap1.Dispose();
+
+        }
+        
+        
+
+        private void btnPrintPicture_Click(object sender, EventArgs e)
+
+        {
+
+            //System.Drawing.Printing.PrintDocument myPrintDocument1 = new System.Drawing.Printing.PrintDocument();
+
+            PrintDialog myPrinDialog1 = new PrintDialog();
+
+            prntDoc.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(myPrintDocument2_PrintPage);
+
+            myPrinDialog1.Document = prntDoc;
+
+ 
+
+            if (myPrinDialog1.ShowDialog() == DialogResult.OK)
+
+            {
+
+               prntDoc.Print();
+
+            }
+
+        }
+		void HelpToolStripButtonClick(object sender, EventArgs e)
+			
+		{
+			//System.Drawing.Printing.PrintDocument myPrintDocument1 = new System.Drawing.Printing.PrintDocument();
+			PrintPreviewDialog  myPrinDialog1 = new PrintPreviewDialog();
+			prntDoc.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(myPrintDocument2_PrintPage);
+			myPrinDialog1.Document = prntDoc;
+			//myPrinDialog1.ClientSize = new System.Drawing.Size(400, 300);
+			//prntDoc.OriginAtMargins = true;
+ 			myPrinDialog1.ShowDialog();
+
+		}
+		*/
+
     }
 
 
