@@ -251,7 +251,7 @@ namespace SharpEditor
             }
         }
 
-        private void PictureBox1_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
+               private void PictureBox1_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
 
             if (e.Button == MouseButtons.Left & trckbrEdit.Value == 1)
@@ -259,23 +259,29 @@ namespace SharpEditor
                System.Drawing.Image img = default(System.Drawing.Image);
                 //sets the current page as image.
                 img = new Bitmap(pictureBox1.Image);
+                
+				SolidBrush b = new SolidBrush(Color.White);
+				Graphics g = default(Graphics);
+				Rectangle DrawRect = default(Rectangle);
 
                 Bitmap objBmp = new Bitmap(img, img.Width, img.Height);
-                Bitmap objNewBmp = new Bitmap(objBmp.Width, objBmp.Height, System.Drawing.Imaging.PixelFormat.Format16bppRgb555);
+                //Bitmap objNewBmp = new Bitmap(objBmp.Width, objBmp.Height, System.Drawing.Imaging.PixelFormat.Format16bppRgb555);
 
-                Graphics g = default(Graphics);
-                g = Graphics.FromImage(objNewBmp);
+                
+                g = Graphics.FromImage(objBmp);
                 //Creats a duplicate image file as bitmap format 
-                Rectangle rect = default(Rectangle);
-                var _with1 = rect;
-                _with1.Width = img.Width;
-                _with1.Height = img.Height;
-                _with1.X = 0;
-                _with1.Y = 0;
+                
+                
+                //Rectangle rect = default(Rectangle);
+                //var _with1 = rect;
+                //_with1.Width = img.Width;
+                //_with1.Height = img.Height;
+                //_with1.X = 0;
+                //_with1.Y = 0;
 
-                g.DrawImage(img, rect);
+                
 
-                Rectangle DrawRect = default(Rectangle);
+                
                 //Sets the position of the mouse
                 finishX = e.X;
                 finishY = e.Y;
@@ -284,22 +290,23 @@ namespace SharpEditor
                 //Sets the value of rectangle, x, y, width, height position
                 DrawRect = new Rectangle(Math.Min(up.X, down.X), Math.Min(up.Y, down.Y), Math.Abs(up.X - down.X), Math.Abs(up.Y - down.Y));
 
-                SolidBrush b = new SolidBrush(Color.White);
-                g.FillRectangle(b, DrawRect);
+                //g.DrawImage(img, DrawRect);
+                //g.FillRectangle(b, DrawRect);
 
                 //Creates an rectagnle on the picture box for visual.
-                g = pictureBox1.CreateGraphics();
+                //g = pictureBox1.CreateGraphics();
                 g.FillRectangle(b, DrawRect);
-                g.Dispose();
+                
+                //g.Dispose();
                 //objNewBmp.Save("c:\temp\s" & ".tif", Imaging.ImageFormat.Tiff)
                 pictureBox1.Image = objBmp;
                 //cboFrameEdit.Items.Add(curF)
                 g.Dispose();
-                objBmp.Dispose();
+                //objBmp.Dispose();
                 //objNewBmp.Dispose()
 
                 rubberBanding = false;
-                pictureBox1.Invalidate();
+                //pictureBox1.Invalidate();
 
                 //savemouse()
 
