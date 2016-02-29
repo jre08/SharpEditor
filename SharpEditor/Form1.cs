@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -28,12 +28,13 @@ namespace SharpEditor
         string strFilePath, filename, tempfile = "temp.tif", strPath, strFileName;
         Bitmap srcBmpfrm, srcBmp, imgBmp;
         Image pic, resized;
-        System.Drawing.Printing.PrintDocument prntDoc;
+        System.Drawing.Printing.PrintDocument prntDoc = new PrintDocument();
         Graphics g;
         Pen pn;
-
-
         FileStream fs;
+        List<Image> imgLst = new List<Image>();
+        
+        
         private void btnImportFolder_Click(object sender, EventArgs e)
         {
             if ((ImportDirDialog.ShowDialog() == DialogResult.OK))
@@ -44,8 +45,6 @@ namespace SharpEditor
 
         }
 
-
-
         private void listView1_SelectedIndexChanged_1(object sender, EventArgs e)
         {
             if (importedPDF == false)
@@ -54,15 +53,20 @@ namespace SharpEditor
                 {
                     listNum = item.Index;
                     srcBmp = null;
+                    /*
                     fs.Dispose();
                     fs = File.Open(Application.StartupPath + "\\temp\\temp" + listNum + ".tif", FileMode.Open, FileAccess.ReadWrite);
                     srcBmp = (Bitmap)Bitmap.FromStream(fs);
+                    */
+                   //srcBmp = imgList[listNum];
+                    
                     //srcBmpfrm = Bitmap.FromFile(Application.StartupPath & "\temp\temp" & item.Index & ".tif")
                     //srcBmp.SelectActiveFrame(FrameDimension.Page, item.ImageIndex)
                     //PictureBox1.Image = ResizeImage(srcBmp, New Size(PictureBox1.Width, PictureBox1.Height))
-                    pictureBox1.Width = srcBmp.Width;
-                    pictureBox1.Height = srcBmp.Height;
-                    pictureBox1.Image = srcBmp;
+                   // pictureBox1.Width = srcBmp.Width;
+                    //pictureBox1.Height = srcBmp.Height;
+                    //pictureBox1.Image = srcBmp;
+                    pictureBox1.Image = imgLst[listNum];
 
 
                 }
@@ -97,6 +101,7 @@ namespace SharpEditor
         public Form1()
         {
             InitializeComponent();
+            ImgList();
         }
 
         private void btnOpenImage_Click(object sender, EventArgs e)
@@ -130,10 +135,12 @@ namespace SharpEditor
                 resized = new Bitmap(srcBmp, srcBmp.Width, srcBmp.Height);
                 if (srcBmp.Width > 1200)
                 {
-                    resized = ResizeImage(resized, new Size(Convert.ToInt32(srcBmp.Width / 2.1), Convert.ToInt32(srcBmp.Height / 2.1)), true);
+                    resized = ResizeImage(resized, new Size(Convert.ToInt32(srcBmp.Width / 2.8), Convert.ToInt32(srcBmp.Height / 3.2)), true);
                 }
                 int num = tempdi.GetFiles().Count();
                 resized.Save(Application.StartupPath + "\\temp\\temp" + num + ".tif", System.Drawing.Imaging.ImageFormat.Tiff);
+                imgLst.Add(resized);
+                
                 resized.Dispose();
             }
             fs.Dispose();
@@ -170,63 +177,10 @@ namespace SharpEditor
             return newImage;
         }
 
-        #region "Paint Rectangle On Mouse move"
-        /*
-        Point startPos;      // mouse-down position
-        Point currentPos;    // current mouse position
-        bool drawing;        // busy drawing
-        List<Rectangle> rectangles = new List<Rectangle>();  // previous rectangles
-
-        private Rectangle getRectangle()
-        {
-            return new Rectangle(
-                Math.Min(startPos.X, currentPos.X),
-                Math.Min(startPos.Y, currentPos.Y),
-                Math.Abs(startPos.X - currentPos.X),
-                Math.Abs(startPos.Y - currentPos.Y));
-                
-        }
-
-        private void PictureBox1_MouseDown(object sender, MouseEventArgs e)
-        {
-            currentPos = startPos = e.Location;
-            drawing = true;
-        }
-
-        private void PictureBox1_MouseMove(object sender, MouseEventArgs e)
-        {
-            currentPos = e.Location;
-            if (drawing) pictureBox1.Invalidate();
-        }
-
-        private void PictureBox1_MouseUp(object sender, MouseEventArgs e)
-        {
-            if (drawing)
-            {
-                drawing = false;
-                var rc = getRectangle();
-                if (rc.Width > 0 && rc.Height > 0) rectangles.Add(rc);
-                pictureBox1.Invalidate();
-            }
-        }
-
-        private void PictureBox1_Paint(object sender, PaintEventArgs e)
-        {
-            if (rectangles.Count > 0) e.Graphics.DrawRectangles(Pens.Black, rectangles.ToArray());
-            if (drawing) e.Graphics.DrawRectangle(Pens.Red, getRectangle());
-        }
-
-         
-
-        void PictureBox_Paint(object sender, PaintEventArgs e)
-        {
-    Rectangle = new Rectangle(x, y, width, height);
-    Pen = new Pen(Color.Crimson, 1);
-    e.Graphics.DrawRectangle(Pen, Rectangle);
-        }
-
-    */
         
+        
+       #region Draw Rectangle on PictureBox1
+      
         private void PictureBox1_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left & trckbrEdit.Value == 1)
@@ -251,7 +205,7 @@ namespace SharpEditor
             }
         }
 
-               private void PictureBox1_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
+        private void PictureBox1_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
 
             if (e.Button == MouseButtons.Left & trckbrEdit.Value == 1)
@@ -319,13 +273,12 @@ namespace SharpEditor
             using (Pen pn = new Pen(rubberBandColor) { DashStyle = System.Drawing.Drawing2D.DashStyle.Dash })
             {
                 e.Graphics.DrawRectangle(pn, rubberBand);
+                SolidBrush b = new SolidBrush(Color.White);
+                e.Graphics.FillRectangle(b,rubberBand);
             }
 
         }
-        
-
-    
-
+       
         #endregion
 
 
@@ -346,6 +299,8 @@ namespace SharpEditor
                 imgBmp = (Bitmap)Bitmap.FromStream(fs);
                 //Image imgBmp = Bitmap.FromFile(Application.StartupPath + "\\temp\\temp" + num + ".tif");
                 imageList1.Images.Add("ico" + num, imgBmp);
+                pic = Image.FromStream(fs);
+                imgLst.Add(pic);
                 //imageList1.Images.Add(num, Application.StartupPath + "\\temp\\temp" + num + ".tif");
                 listView1.Items.Add(Convert.ToString(num), "Page" + Convert.ToString(num + 1), num);
                 fs.Dispose();
@@ -364,7 +319,6 @@ namespace SharpEditor
             {
                 listNum = item.Index;
             }
-
             //ImageList1.Images.Clear()
             //ListView1.Items.Clear()
             srcBmp = null;
@@ -373,12 +327,13 @@ namespace SharpEditor
             //delete the current temp file to be overwritten by the new edited temp file
            File.Delete(Application.StartupPath + "\\temp\\temp" + listNum + ".tif");
             g = Graphics.FromImage(objNewBmp);
-            //'Creats a duplicate image file as bitmap format 
+            //'Creats a duplicate image file as bitmap format
+			            
 
             //'Creates an rectagnle on the picture box for visual.
             g = pictureBox1.CreateGraphics();
             objNewBmp.Save(Application.StartupPath + "\\temp\\temp" + listNum + ".tif", System.Drawing.Imaging.ImageFormat.Tiff);
-
+            imgLst[listNum] = objNewBmp;
             //ListView1.Refresh()
             ImgList();
             //ListView1.Items.Item(ListNum).Selected = True
@@ -420,8 +375,6 @@ namespace SharpEditor
             ImgList();
         }
 
-
-/*
 private void myPrintDocument2_PrintPage(System.Object sender, System.Drawing.Printing.PrintPageEventArgs e)
 
         {
@@ -473,7 +426,13 @@ private void myPrintDocument2_PrintPage(System.Object sender, System.Drawing.Pri
  			myPrinDialog1.ShowDialog();
 
 		}
-		*/
+		void SaveToolStripButtonClick(object sender, EventArgs e)
+		{
+			savemouse();
+		}
+
+
+
 
     }
 
