@@ -50,8 +50,8 @@ namespace SharpEditor
         //Sets the picturebox to the selected thumbnail (Listbox Item)
         private void listView1_SelectedIndexChanged_1(object sender, EventArgs e)
         {
-            if (importedPDF == false)
-            {
+            //if (importedPDF == false)
+            //{
                 foreach (ListViewItem item in listView1.SelectedItems)
                 {
                     listNum = item.Index;
@@ -60,23 +60,19 @@ namespace SharpEditor
                     fs.Dispose();
                     //fs = File.Open(Application.StartupPath + "\\temp\\temp" + listNum + ".tif", FileMode.Open, FileAccess.ReadWrite);
                     //srcBmp = (Bitmap)Bitmap.FromStream(fs);
-                    Debug.Print(listNum.ToString());
-                    pic = Image.FromStream(imgLst[listNum].ImageStream);
 
+                    pic = Image.FromStream(imgLst[listNum].ImageStream);
                     //srcBmpfrm = Bitmap.FromFile(Application.StartupPath & "\temp\temp" & item.Index & ".tif")
                     //srcBmp.SelectActiveFrame(FrameDimension.Page, item.ImageIndex)
                     //PictureBox1.Image = ResizeImage(srcBmp, New Size(PictureBox1.Width, PictureBox1.Height))
                     pictureBox1.Width = pic.Width;
                     pictureBox1.Height = pic.Height;
-                    //pictureBox1.Image = srcBmp;
-                    pictureBox1.Image = Image.FromStream(imgLst[listNum].ImageStream);
+                    pictureBox1.Image = pic;
 
                 }
 
-
-
             }
-            else
+            /*else
             {
                 //    'PictureBox1.Image = ResizeImage(srcBmp, New Size(PictureBox1.Width, PictureBox1.Height))
                 //filename = System.IO.Path.Combine(folder, item.Text)
@@ -86,10 +82,10 @@ namespace SharpEditor
                     PictureBox1.Width = picsizew(srcBmp);
                     PictureBox1.Height = picsizeh(srcBmp);
                 }
-                */
+               
 
             }
-        }
+        } */
 
 
         //Clears Image list
@@ -243,21 +239,8 @@ namespace SharpEditor
 
                 Bitmap objBmp = new Bitmap(img, img.Width, img.Height);
                 //Bitmap objNewBmp = new Bitmap(objBmp.Width, objBmp.Height, System.Drawing.Imaging.PixelFormat.Format16bppRgb555);
-
-
                 g = Graphics.FromImage(objBmp);
                 //Creats a duplicate image file as bitmap format 
-
-
-                //Rectangle rect = default(Rectangle);
-                //var _with1 = rect;
-                //_with1.Width = img.Width;
-                //_with1.Height = img.Height;
-                //_with1.X = 0;
-                //_with1.Y = 0;
-
-
-
 
                 //Sets the position of the mouse
                 finishX = e.X;
@@ -285,10 +268,11 @@ namespace SharpEditor
                 rubberBanding = false;
                 //pictureBox1.Invalidate();
 
-                //savemouse()
-
+                //
+					savemouse();
             }
             //pn.Dispose()
+            
         }
 
         private void PictureBox1_Paint(object sender, System.Windows.Forms.PaintEventArgs e)
@@ -377,7 +361,7 @@ namespace SharpEditor
             }
             //ImageList1.Images.Clear()
             ////ListView1.Items.Clear()
-            srcBmp = null;
+            //srcBmp = null;
             ////////fs.Dispose();
             //PictureBox1.Image.Dispose()
             //delete the current temp file to be overwritten by the new edited temp file
@@ -395,7 +379,7 @@ namespace SharpEditor
             imgLst[listNum].ImageStream = ms;
 
             //imageList1.Images[listNum] = Image.FromStream(imgLst[listNum].ImageStream);
-            imageList1.Images[listNum] = new Bitmap(objNewBmp, 100,100);
+            imageList1.Images[listNum] = new Bitmap(objNewBmp, 128,128);
             listView1.RedrawItems(listNum, listNum,false );
             //ImgList();
 
@@ -461,9 +445,9 @@ namespace SharpEditor
             //System.Drawing.Printing.PrintDocument myPrintDocument1 = new System.Drawing.Printing.PrintDocument();
 
             PrintDialog myPrinDialog1 = new PrintDialog();
+            
 
             prntDoc.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(myPrintDocument2_PrintPage);
-
             myPrinDialog1.Document = prntDoc;
 
 
@@ -471,7 +455,6 @@ namespace SharpEditor
             if (myPrinDialog1.ShowDialog() == DialogResult.OK)
 
             {
-
                 prntDoc.Print();
 
             }
@@ -491,15 +474,51 @@ namespace SharpEditor
             myPrinDialog1.ShowDialog();
 
         }
+		void BtnCloseClick(object sender, EventArgs e)
+		{
+	imgLst.Clear();
+            imageList1.Images.Clear();
+            listView1.Clear();
+            pictureBox1.Image = null;
+		}
 
+ private void PdfToJpg(string inputPDFFile, string outputImagesPath)
+        {
+ 			
+            string ghostScriptPath = Application.StartupPath + "\\gswin32.exe";
+            String ars = "-dNOPAUSE -sDEVICE=tiffscaled  -r300x300  -o \"" + outputImagesPath + ".tiff\" -sPAPERSIZE=a4 " + inputPDFFile;
+            Process proc = new Process();
+            proc.StartInfo.FileName = ghostScriptPath;
+            proc.StartInfo.Arguments = ars;
+            proc.StartInfo.CreateNoWindow = true;
+            proc.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
+            proc.Start();
+            proc.WaitForExit();
+            Debug.Print(outputImagesPath + ".tiff");
+            addimage2(outputImagesPath + ".tiff");
+            ImgList();
+            
+        }
+		void ToolStripButton1Click(object sender, EventArgs e)
+		{
+			 DialogResult result = openPDFDialog.ShowDialog(); // Show the dialog.
+			 if (result == DialogResult.OK){ // Test result.
+            	string outputpath = Application.StartupPath + "\\temp\\temp";
+            	Debug.Print(outputpath);
+            	PdfToJpg(openPDFDialog.FileName, outputpath);
+			 }
+		}
 
     }
-
     class RedactDoc
     {
+        
+    
+
 
         public string PageNum { get; set; }
         public MemoryStream ImageStream { get; set; }
     }
 }
+
 
