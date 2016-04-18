@@ -16,6 +16,7 @@ using System.Diagnostics;
 using PdfSharp;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
+using PdfSharp.Pdf.IO;
 
 
 
@@ -53,7 +54,7 @@ namespace SharpEditor
         {
             if ((ImportDirDialog.ShowDialog() == DialogResult.OK))
             {
-                ImportDir();
+                ImportDir(ImportDirDialog.SelectedPath);
             }
         }
 
@@ -126,7 +127,8 @@ namespace SharpEditor
         //Adds an Image to Image <rDoc>  for editing and storage (Stores in memory compared to old 'void addimage' disk method.
         void addimage2(string filename)
         {
-            tempdi = new DirectoryInfo(@Application.StartupPath + "\\temp\\");
+        	
+        	tempdi = new DirectoryInfo(@Application.StartupPath + "\\temp\\");
             fs = File.Open(filename, FileMode.Open, FileAccess.ReadWrite);
             srcBmp = (Bitmap)Bitmap.FromStream(fs);
             totalPages = Convert.ToInt32(srcBmp.GetFrameCount(FrameDimension.Page) - 1);
@@ -150,14 +152,47 @@ namespace SharpEditor
                 rDoc.FileName = Application.StartupPath + "\\temp\\temp" + num + ".png";
                 imgLst.Add(rDoc);
                 ms = null;
+                srcBmp.Dispose();
+            	srcBmp = null;
 
                 resized.Dispose();
             }
             fs.Dispose();
-            srcBmp.Dispose();
-            //pictureBox1.Image = new Bitmap(imgLst[0]);
-            //pictureBox1.Image = ResizeImage(srcBmp, New Size(pictureBox1.Width, pictureBox1.Height));
-            //ListView1.Items.Item(0).Selected = True
+            progressBar1.PerformStep();
+            
+            fs = null;
+//            tempdi = new DirectoryInfo(@Application.StartupPath + "\\temp\\");
+//            fs = File.Open(filename, FileMode.Open, FileAccess.ReadWrite);
+//            srcBmp = (Bitmap)Bitmap.FromStream(fs);
+//            totalPages = Convert.ToInt32(srcBmp.GetFrameCount(FrameDimension.Page) - 1);
+//            int i;
+//            for (i = 0; i <= totalPages; i++)
+//            {
+//                srcBmp.SelectActiveFrame(FrameDimension.Page, i);
+//
+//                resized = new Bitmap(srcBmp, srcBmp.Width, srcBmp.Height);
+//                if (srcBmp.Width > 1200)
+//                {
+//                    resized = ResizeImage(resized, new Size(Convert.ToInt32(srcBmp.Width / 2.8), Convert.ToInt32(srcBmp.Height / 3.2)), true);
+//                }
+//                int num = tempdi.GetFiles().Count();
+//                resized.Save(Application.StartupPath + "\\temp\\temp" + num + ".png", System.Drawing.Imaging.ImageFormat.Png);
+//                RedactDoc rDoc = new RedactDoc();
+//                rDoc.PageNum = "page";
+//                ms = new MemoryStream();
+//                resized.Save(ms, ImageFormat.Jpeg);
+//                rDoc.ImageStream = ms;
+//                rDoc.FileName = Application.StartupPath + "\\temp\\temp" + num + ".png";
+//                imgLst.Add(rDoc);
+//                ms = null;
+//                
+//
+//                resized.Dispose();
+//            }
+//            fs.Dispose();
+//            srcBmp.Dispose();
+//            srcBmp = null;
+//            fs = null;
         }
 
         //Reduces Image Size
@@ -292,11 +327,13 @@ namespace SharpEditor
             for (i = 0; i < imgLst.Count(); i++)
             {
                 
-                imageList1.Images.Add("ico" + num, Image.FromStream(imgLst[i].ImageStream));
+            	imageList1.Images.Add("ico" + i, Image.FromStream(imgLst[num].ImageStream));
                 listView1.Items.Add(Convert.ToString(num), "Page" + Convert.ToString(i + 1), num);
-               
+                num++;
             }
             this.Cursor = Cursors.Default;
+            progressBar1.Value = 0;
+            
         }
 
         //Saves picturebox(canvas) after editing  (rectangle, etc.)
@@ -321,9 +358,9 @@ namespace SharpEditor
         }
 
         //Imports a directory of image files using the allowedExtensions arrary
-        public void ImportDir()
+        public void ImportDir(string dirPath)
         {
-            DirectoryInfo di = new DirectoryInfo(ImportDirDialog.SelectedPath);
+            DirectoryInfo di = new DirectoryInfo(dirPath);
             foreach (FileInfo fi in di.GetFiles())
             {
 
@@ -331,16 +368,12 @@ namespace SharpEditor
                 {
                     if (extension == System.IO.Path.GetExtension(fi.FullName))
                     {
-                        Debug.Print(fi.Name);
                         addimage2(fi.FullName);
-                        //ImageList1.Images.Add(Image.FromFile(dirFile))
 
                     }
                 }
             }
 
-            // dirPath.Text = ImportDirDialog.SelectedPath;
-            importedDir = true;
             ImgList();
         }
 
@@ -395,13 +428,16 @@ namespace SharpEditor
             proc.Start();
             proc.WaitForExit();
             //Debug.Print(outputImagesPath + ".tiff");
-            DirectoryInfo di = new DirectoryInfo(Application.StartupPath + "\\temp\\pdf\\");
-            foreach (FileInfo fi in di.GetFiles())
-            {
-                addimage2(fi.FullName);
-                //ImageList1.Images.Add(Image.FromFile(dirFile))
-            }
-            ImgList();
+//            DirectoryInfo di = new DirectoryInfo(Application.StartupPath + "\\temp\\pdf\\");
+//            foreach (FileInfo fi in di.GetFiles())
+//            {
+//                addimage2(fi.FullName);
+//                //ImageList1.Images.Add(Image.FromFile(dirFile))
+//            }
+progressBar1.Value = progressBar1.Maximum / 2;
+
+ImportDir(Application.StartupPath + "\\temp\\pdf\\");
+            //ImgList();
 
         }
 
@@ -411,8 +447,11 @@ namespace SharpEditor
             DialogResult result = openPDFDialog.ShowDialog(); // Show the dialog.
             if (result == DialogResult.OK)
             { // Test result.
+            	this.Cursor = Cursors.WaitCursor;
                 string outputpath = Application.StartupPath + "\\temp\\pdf\\pdf";
-                Debug.Print(outputpath);
+                PdfDocument inputDocument1 = PdfReader.Open(openPDFDialog.FileName, PdfDocumentOpenMode.Import);
+                Debug.Print(string.Format("{0}",inputDocument1.PageCount));
+                progressBar1.Maximum = inputDocument1.PageCount * 2;
                 PdfToJpg(openPDFDialog.FileName, outputpath);
             }
         }
@@ -452,6 +491,39 @@ namespace SharpEditor
             doc.Close();
 
         }
+		void PrintToolStripButtonClick(object sender, EventArgs e)
+		{
+			//System.Drawing.Printing.PrintDocument myPrintDocument1 = new System.Drawing.Printing.PrintDocument();
+            PrintDialog myPrinDialog1 = new PrintDialog();
+            prntDoc.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(myPrintDocument2_PrintPage);
+            myPrinDialog1.Document = prntDoc;
+            if (myPrinDialog1.ShowDialog() == DialogResult.OK)
+            {
+                prntDoc.Print();
+
+            }
+		}
+		void Button1Click(object sender, EventArgs e)
+		{
+			foreach (ListViewItem item in listView1.SelectedItems)
+            {
+                listNum = item.Index;
+                pic = Image.FromStream(imgLst[listNum].ImageStream);
+                // pic = Image.FromFile(imgLst[listNum].FileName);
+                //srcBmp.SelectActiveFrame(FrameDimension.Page, item.ImageIndex)
+                //PictureBox1.Image = ResizeImage(srcBmp, New Size(PictureBox1.Width, PictureBox1.Height))
+                pic.RotateFlip(RotateFlipType.Rotate90FlipNone);
+    pictureBox1.Width = pic.Width;
+                pictureBox1.Height = pic.Height;
+                pictureBox1.Image = pic;
+                ms = new MemoryStream();
+            pic.Save(ms, ImageFormat.Png);
+            imgLst[listNum].ImageStream = ms;
+            imageList1.Images[listNum] = new Bitmap(pic, 128, 128);
+            listView1.RedrawItems(listNum, listNum, false);
+
+            }
+		}
 #endregion
 
 
@@ -469,6 +541,7 @@ namespace SharpEditor
         public string FileName { get; set; }
     }
 }
+
 
 
 
