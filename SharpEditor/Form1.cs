@@ -16,6 +16,7 @@ using System.Diagnostics;
 using PdfSharp;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
+using PdfSharp.Pdf.IO;
 
 
 
@@ -30,7 +31,7 @@ namespace SharpEditor
         Color rubberBandColor = Color.Red;
         Boolean rubberBanding = false;
         int listNum, totalPages, finishX, finishY, startX, startY;
-       // string strFilePath, filename, tempfile = "temp.tif", strPath, strFileName;
+        // string strFilePath, filename, tempfile = "temp.tif", strPath, strFileName;
         Bitmap srcBmp;
         Image pic, resized;
         PrintDocument prntDoc = new PrintDocument();
@@ -48,53 +49,35 @@ namespace SharpEditor
     ".tif"
 };
 
+        public Form1()
+        {
+            InitializeComponent();
+            ImgList();
+        }
+
         //Toolbar Import Folder Button
         private void btnImportFolder_Click(object sender, EventArgs e)
         {
             if ((ImportDirDialog.ShowDialog() == DialogResult.OK))
             {
-                ImportDir();
+                ImportDir(ImportDirDialog.SelectedPath);
             }
         }
 
         //Sets the picturebox to the selected thumbnail (Listbox Item)
         private void listView1_SelectedIndexChanged_1(object sender, EventArgs e)
         {
-            foreach (ListViewItem item in listView1.SelectedItems)
-            {
-                listNum = item.Index;
-                pic = Image.FromStream(imgLst[listNum].ImageStream);
-                // pic = Image.FromFile(imgLst[listNum].FileName);
-                //srcBmp.SelectActiveFrame(FrameDimension.Page, item.ImageIndex)
-                //PictureBox1.Image = ResizeImage(srcBmp, New Size(PictureBox1.Width, PictureBox1.Height))
-                pictureBox1.Width = pic.Width;
-                pictureBox1.Height = pic.Height;
-                pictureBox1.Image = pic;
-
-            }
+            pic = Image.FromStream(imgLst[SelectedDocnum()].ImageStream);
+            // pic = Image.FromFile(imgLst[listNum].FileName);
+            pictureBox1.Width = pic.Width;
+            pictureBox1.Height = pic.Height;
+            pictureBox1.Image = pic;
         }
 
         //Clears Image list
         private void tlbrBtnClear_Click(object sender, EventArgs e)
         {
-            imgLst.Clear();
-            imageList1.Images.Clear();
-            listView1.Clear();
-            pictureBox1.Image = null;
-
-            DirectoryInfo di = new DirectoryInfo(Application.StartupPath + "\\temp\\pdf");
-            foreach (FileInfo fi in di.GetFiles())
-            {
-
-                fi.Delete();
-
-            }
-            DirectoryInfo di2 = new DirectoryInfo(Application.StartupPath + "\\temp");
-            foreach (FileInfo fi in di2.GetFiles())
-            {
-                fi.Delete();
-
-            }
+            clearcache();
         }
 
         //Toolbar Save button  --  *** NOT USED ***  This is now called after the mouse up event so that it automatically saves.  
@@ -104,21 +87,12 @@ namespace SharpEditor
             tiff2PDF();
         }
 
-       
-
-        public Form1()
-        {
-            InitializeComponent();
-            ImgList();
-        }
 
         //Toolbar open File (import file)
         private void btnOpenImage_Click(object sender, EventArgs e)
         {
-            //openFile.ShowDialog();
             DialogResult result = openFile.ShowDialog(); // Show the dialog.
             if (result == DialogResult.OK) // Test result.
-
                 addimage2(openFile.FileName);
             ImgList();
         }
@@ -126,7 +100,8 @@ namespace SharpEditor
         //Adds an Image to Image <rDoc>  for editing and storage (Stores in memory compared to old 'void addimage' disk method.
         void addimage2(string filename)
         {
-            tempdi = new DirectoryInfo(@Application.StartupPath + "\\temp\\");
+
+            tempdi = Globals.tempdi;
             fs = File.Open(filename, FileMode.Open, FileAccess.ReadWrite);
             srcBmp = (Bitmap)Bitmap.FromStream(fs);
             totalPages = Convert.ToInt32(srcBmp.GetFrameCount(FrameDimension.Page) - 1);
@@ -135,31 +110,35 @@ namespace SharpEditor
             {
                 srcBmp.SelectActiveFrame(FrameDimension.Page, i);
 
-                resized = new Bitmap(srcBmp, srcBmp.Width, srcBmp.Height);
-                if (srcBmp.Width > 1200)
-                {
-                    resized = ResizeImage(resized, new Size(Convert.ToInt32(srcBmp.Width / 2.8), Convert.ToInt32(srcBmp.Height / 3.2)), true);
-                }
+                //resized = new Bitmap(srcBmp, srcBmp.Width, srcBmp.Height);
+                resized = new Bitmap(srcBmp, Convert.ToInt32(srcBmp.Width / 2.8), Convert.ToInt32(srcBmp.Height / 2.8));
+                // if (srcBmp.Width > 1200)
+                // {
+                //     resized = ResizeImage(resized, new Size(Convert.ToInt32(srcBmp.Width / 2.8), Convert.ToInt32(srcBmp.Height / 3.2)), true);
+                // }
                 int num = tempdi.GetFiles().Count();
                 resized.Save(Application.StartupPath + "\\temp\\temp" + num + ".png", System.Drawing.Imaging.ImageFormat.Png);
                 RedactDoc rDoc = new RedactDoc();
-                rDoc.PageNum = "page";
+                rDoc.PageNum = string.Format("Page {0}", num +1);
                 ms = new MemoryStream();
                 resized.Save(ms, ImageFormat.Jpeg);
                 rDoc.ImageStream = ms;
                 rDoc.FileName = Application.StartupPath + "\\temp\\temp" + num + ".png";
                 imgLst.Add(rDoc);
                 ms = null;
+                srcBmp.Dispose();
+                srcBmp = null;
 
                 resized.Dispose();
             }
             fs.Dispose();
-            srcBmp.Dispose();
-            //pictureBox1.Image = new Bitmap(imgLst[0]);
-            //pictureBox1.Image = ResizeImage(srcBmp, New Size(pictureBox1.Width, pictureBox1.Height));
-            //ListView1.Items.Item(0).Selected = True
-        }
+            progressBar1.PerformStep();
 
+            fs = null;
+                 }
+
+        
+        
         //Reduces Image Size
         public static Image ResizeImage(Image image, Size size, bool preserveAspectRatio)
         {
@@ -286,17 +265,20 @@ namespace SharpEditor
             this.Cursor = Cursors.WaitCursor;
             listView1.Items.Clear();
             imageList1.Images.Clear();
-            tempdi = new DirectoryInfo(Application.StartupPath + "\\temp\\");
+            tempdi = Globals.tempdi;
             dynamic num = 0;
             int i;
             for (i = 0; i < imgLst.Count(); i++)
             {
-                
-                imageList1.Images.Add("ico" + num, Image.FromStream(imgLst[i].ImageStream));
-                listView1.Items.Add(Convert.ToString(num), "Page" + Convert.ToString(i + 1), num);
-               
+
+                //imageList1.Images.Add("ico" + i, Image.FromStream(imgLst[num].ImageStream));
+                imageList1.Images.Add(imgLst[i].PageNum, Image.FromStream(imgLst[num].ImageStream));
+                listView1.Items.Add(Convert.ToString(num), imgLst[i].PageNum, num);
+                num++;
             }
             this.Cursor = Cursors.Default;
+            progressBar1.Value = 0;
+
         }
 
         //Saves picturebox(canvas) after editing  (rectangle, etc.)
@@ -321,9 +303,9 @@ namespace SharpEditor
         }
 
         //Imports a directory of image files using the allowedExtensions arrary
-        public void ImportDir()
+        public void ImportDir(string dirPath)
         {
-            DirectoryInfo di = new DirectoryInfo(ImportDirDialog.SelectedPath);
+            DirectoryInfo di = new DirectoryInfo(dirPath);
             foreach (FileInfo fi in di.GetFiles())
             {
 
@@ -331,16 +313,12 @@ namespace SharpEditor
                 {
                     if (extension == System.IO.Path.GetExtension(fi.FullName))
                     {
-                        Debug.Print(fi.Name);
                         addimage2(fi.FullName);
-                        //ImageList1.Images.Add(Image.FromFile(dirFile))
 
                     }
                 }
             }
 
-            // dirPath.Text = ImportDirDialog.SelectedPath;
-            importedDir = true;
             ImgList();
         }
 
@@ -372,7 +350,7 @@ namespace SharpEditor
         //Print Preview myPrintDocument2
         void HelpToolStripButtonClick(object sender, EventArgs e)
 
-        {         
+        {
             PrintPreviewDialog myPrinDialog1 = new PrintPreviewDialog();
             prntDoc.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(myPrintDocument2_PrintPage);
             myPrinDialog1.Document = prntDoc;
@@ -386,7 +364,7 @@ namespace SharpEditor
         {
 
             string ghostScriptPath = Application.StartupPath + "\\gswin32.exe";
-            String ars = "-dNOPAUSE -sDEVICE=pnggray -r300x300  -o \"" + outputImagesPath + "%d.png\" -sPAPERSIZE=a4 " + inputPDFFile;
+            String ars = "-dNOPAUSE -sDEVICE=pnggray -r300x300  -o\"" + outputImagesPath + "%d.png\" -sPAPERSIZE=a4 \"" + inputPDFFile + "\"";
             Process proc = new Process();
             proc.StartInfo.FileName = ghostScriptPath;
             proc.StartInfo.Arguments = ars;
@@ -395,14 +373,20 @@ namespace SharpEditor
             proc.Start();
             proc.WaitForExit();
             //Debug.Print(outputImagesPath + ".tiff");
-            DirectoryInfo di = new DirectoryInfo(Application.StartupPath + "\\temp\\pdf\\");
-            foreach (FileInfo fi in di.GetFiles())
-            {
-                addimage2(fi.FullName);
-                //ImageList1.Images.Add(Image.FromFile(dirFile))
-            }
-            ImgList();
+            //            DirectoryInfo di = new DirectoryInfo(Application.StartupPath + "\\temp\\pdf\\");
+            //            foreach (FileInfo fi in di.GetFiles())
+            //            {
+            //                addimage2(fi.FullName);
+            //                //ImageList1.Images.Add(Image.FromFile(dirFile))
+            //            }
+            progressBar1.Value = progressBar1.Maximum / 2;
 
+            ImportDir(Application.StartupPath + "\\temp\\pdf\\");
+        }
+
+        private void Form1_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            clearcache();
         }
 
         //Imports a PDF then calls the PDFtoJpg procedure to convert to image files
@@ -411,8 +395,11 @@ namespace SharpEditor
             DialogResult result = openPDFDialog.ShowDialog(); // Show the dialog.
             if (result == DialogResult.OK)
             { // Test result.
+                this.Cursor = Cursors.WaitCursor;
                 string outputpath = Application.StartupPath + "\\temp\\pdf\\pdf";
-                Debug.Print(outputpath);
+                PdfDocument inputDocument1 = PdfReader.Open(openPDFDialog.FileName, PdfDocumentOpenMode.Import);
+                Debug.Print(string.Format("{0}", inputDocument1.PageCount));
+                progressBar1.Maximum = inputDocument1.PageCount * 2;
                 PdfToJpg(openPDFDialog.FileName, outputpath);
             }
         }
@@ -424,7 +411,7 @@ namespace SharpEditor
         #region "TIFF To PDF  **Using PDFSHARP .NET**"
         public void tiff2PDF()
         {
-             PdfDocument doc = new PdfDocument();
+            PdfDocument doc = new PdfDocument();
             //int pageCount = tiff.getPageCount(fileName);
             int pageCount = listView1.Items.Count;
             for (int i = 0; i <= pageCount - 1; i++)
@@ -452,23 +439,98 @@ namespace SharpEditor
             doc.Close();
 
         }
-#endregion
+        void PrintToolStripButtonClick(object sender, EventArgs e)
+        {
+            //System.Drawing.Printing.PrintDocument myPrintDocument1 = new System.Drawing.Printing.PrintDocument();
+            PrintDialog myPrinDialog1 = new PrintDialog();
+            prntDoc.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(myPrintDocument2_PrintPage);
+            myPrinDialog1.Document = prntDoc;
+            if (myPrinDialog1.ShowDialog() == DialogResult.OK)
+            {
+                prntDoc.Print();
+
+            }
+        }
+        void Button1Click(object sender, EventArgs e)
+        {
+            foreach (ListViewItem item in listView1.SelectedItems)
+            {
+                listNum = item.Index;
+                pic = Image.FromStream(imgLst[listNum].ImageStream);
+                // pic = Image.FromFile(imgLst[listNum].FileName);
+                //srcBmp.SelectActiveFrame(FrameDimension.Page, item.ImageIndex)
+                //PictureBox1.Image = ResizeImage(srcBmp, New Size(PictureBox1.Width, PictureBox1.Height))
+                pic.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                pictureBox1.Width = pic.Width;
+                pictureBox1.Height = pic.Height;
+                pictureBox1.Image = pic;
+                ms = new MemoryStream();
+                pic.Save(ms, ImageFormat.Png);
+                imgLst[listNum].ImageStream = ms;
+                imageList1.Images[listNum] = new Bitmap(pic, 128, 128);
+                listView1.RedrawItems(listNum, listNum, false);
+
+            }
+        }
+        #endregion
+
+        void clearcache()
+        {
+            imgLst.Clear();
+            imageList1.Images.Clear();
+            listView1.Clear();
+            pictureBox1.Image = null;
+
+            DirectoryInfo di = new DirectoryInfo(Application.StartupPath + "\\temp\\pdf");
+            foreach (FileInfo fi in di.GetFiles())
+            {
+
+                fi.Delete();
+
+            }
+            DirectoryInfo di2 = new DirectoryInfo(Application.StartupPath + "\\temp");
+            foreach (FileInfo fi in di2.GetFiles())
+            {
+                fi.Delete();
+
+            }
+        }
 
 
+        public int SelectedDocnum()
+        {
 
-    }   //**End FORM CLASS **
+            foreach (ListViewItem item in listView1.SelectedItems)
+            {
+                Globals.DocNum = item.Index;
+            }
+            return Globals.DocNum;
+
+        } 
+        
+        
+        //**End FORM CLASS **
 
 
+        internal static class Globals
+        {
+
+            public static int DocNum;
+            public static DirectoryInfo tempdi = new DirectoryInfo(@Application.StartupPath + "\\temp\\");
 
 
+        }
 
-    class RedactDoc
-    {
-        public string PageNum { get; set; }
-        public MemoryStream ImageStream { get; set; }
-        public string FileName { get; set; }
+        class RedactDoc
+        {
+            public string PageNum { get; set; }
+            public MemoryStream ImageStream { get; set; }
+            public string FileName { get; set; }
+        }
     }
 }
+
+
 
 
 
