@@ -31,7 +31,7 @@ namespace SharpEditor
         Color rubberBandColor = Color.Red;
         Boolean rubberBanding = false;
         int listNum, totalPages, finishX, finishY, startX, startY;
-        // string strFilePath, filename, tempfile = "temp.tif", strPath, strFileName;
+       // string strFilePath, filename, tempfile = "temp.tif", strPath, strFileName;
         Bitmap srcBmp;
         Image pic, resized;
         PrintDocument prntDoc = new PrintDocument();
@@ -68,17 +68,17 @@ namespace SharpEditor
         private void listView1_SelectedIndexChanged_1(object sender, EventArgs e)
         {
             pic = Image.FromStream(imgLst[SelectedDocnum()].ImageStream);
-            // pic = Image.FromFile(imgLst[listNum].FileName);
-            pictureBox1.Width = pic.Width;
-            pictureBox1.Height = pic.Height;
-            pictureBox1.Image = pic;
-        }
+                // pic = Image.FromFile(imgLst[listNum].FileName);
+                pictureBox1.Width = pic.Width;
+                pictureBox1.Height = pic.Height;
+                pictureBox1.Image = pic;
+            }
 
         //Clears Image list
         private void tlbrBtnClear_Click(object sender, EventArgs e)
         {
             clearcache();
-        }
+            }
 
         //Toolbar Save button  --  *** NOT USED ***  This is now called after the mouse up event so that it automatically saves.  
         private void saveToolStripButton_Click(object sender, EventArgs e)
@@ -87,7 +87,7 @@ namespace SharpEditor
             tiff2PDF();
         }
 
-
+       
         //Toolbar open File (import file)
         private void btnOpenImage_Click(object sender, EventArgs e)
         {
@@ -127,7 +127,7 @@ namespace SharpEditor
                 imgLst.Add(rDoc);
                 ms = null;
                 srcBmp.Dispose();
-                srcBmp = null;
+            	srcBmp = null;
 
                 resized.Dispose();
             }
@@ -135,7 +135,7 @@ namespace SharpEditor
             progressBar1.PerformStep();
 
             fs = null;
-                 }
+        }
 
         
         
@@ -270,7 +270,7 @@ namespace SharpEditor
             int i;
             for (i = 0; i < imgLst.Count(); i++)
             {
-
+                
                 //imageList1.Images.Add("ico" + i, Image.FromStream(imgLst[num].ImageStream));
                 imageList1.Images.Add(imgLst[i].PageNum, Image.FromStream(imgLst[num].ImageStream));
                 listView1.Items.Add(Convert.ToString(num), imgLst[i].PageNum, num);
@@ -278,7 +278,7 @@ namespace SharpEditor
             }
             this.Cursor = Cursors.Default;
             progressBar1.Value = 0;
-
+            
         }
 
         //Saves picturebox(canvas) after editing  (rectangle, etc.)
@@ -350,7 +350,7 @@ namespace SharpEditor
         //Print Preview myPrintDocument2
         void HelpToolStripButtonClick(object sender, EventArgs e)
 
-        {
+        {         
             PrintPreviewDialog myPrinDialog1 = new PrintPreviewDialog();
             prntDoc.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(myPrintDocument2_PrintPage);
             myPrinDialog1.Document = prntDoc;
@@ -395,7 +395,7 @@ namespace SharpEditor
             DialogResult result = openPDFDialog.ShowDialog(); // Show the dialog.
             if (result == DialogResult.OK)
             { // Test result.
-                this.Cursor = Cursors.WaitCursor;
+            	this.Cursor = Cursors.WaitCursor;
                 string outputpath = Application.StartupPath + "\\temp\\pdf\\pdf";
                 PdfDocument inputDocument1 = PdfReader.Open(openPDFDialog.FileName, PdfDocumentOpenMode.Import);
                 Debug.Print(string.Format("{0}", inputDocument1.PageCount));
@@ -411,7 +411,7 @@ namespace SharpEditor
         #region "TIFF To PDF  **Using PDFSHARP .NET**"
         public void tiff2PDF()
         {
-            PdfDocument doc = new PdfDocument();
+             PdfDocument doc = new PdfDocument();
             //int pageCount = tiff.getPageCount(fileName);
             int pageCount = listView1.Items.Count;
             for (int i = 0; i <= pageCount - 1; i++)
@@ -439,9 +439,9 @@ namespace SharpEditor
             doc.Close();
 
         }
-        void PrintToolStripButtonClick(object sender, EventArgs e)
-        {
-            //System.Drawing.Printing.PrintDocument myPrintDocument1 = new System.Drawing.Printing.PrintDocument();
+		void PrintToolStripButtonClick(object sender, EventArgs e)
+		{
+			//System.Drawing.Printing.PrintDocument myPrintDocument1 = new System.Drawing.Printing.PrintDocument();
             PrintDialog myPrinDialog1 = new PrintDialog();
             prntDoc.PrintPage += new System.Drawing.Printing.PrintPageEventHandler(myPrintDocument2_PrintPage);
             myPrinDialog1.Document = prntDoc;
@@ -450,10 +450,10 @@ namespace SharpEditor
                 prntDoc.Print();
 
             }
-        }
-        void Button1Click(object sender, EventArgs e)
-        {
-            foreach (ListViewItem item in listView1.SelectedItems)
+		}
+		void Button1Click(object sender, EventArgs e)
+		{
+			foreach (ListViewItem item in listView1.SelectedItems)
             {
                 listNum = item.Index;
                 pic = Image.FromStream(imgLst[listNum].ImageStream);
@@ -461,18 +461,18 @@ namespace SharpEditor
                 //srcBmp.SelectActiveFrame(FrameDimension.Page, item.ImageIndex)
                 //PictureBox1.Image = ResizeImage(srcBmp, New Size(PictureBox1.Width, PictureBox1.Height))
                 pic.RotateFlip(RotateFlipType.Rotate90FlipNone);
-                pictureBox1.Width = pic.Width;
+    pictureBox1.Width = pic.Width;
                 pictureBox1.Height = pic.Height;
                 pictureBox1.Image = pic;
                 ms = new MemoryStream();
-                pic.Save(ms, ImageFormat.Png);
-                imgLst[listNum].ImageStream = ms;
-                imageList1.Images[listNum] = new Bitmap(pic, 128, 128);
-                listView1.RedrawItems(listNum, listNum, false);
+            pic.Save(ms, ImageFormat.Png);
+            imgLst[listNum].ImageStream = ms;
+            imageList1.Images[listNum] = new Bitmap(pic, 128, 128);
+            listView1.RedrawItems(listNum, listNum, false);
 
-            }
         }
-        #endregion
+		}
+#endregion
 
         void clearcache()
         {
@@ -508,7 +508,7 @@ namespace SharpEditor
 
         } 
         
-        
+
         //**End FORM CLASS **
 
 
@@ -521,13 +521,13 @@ namespace SharpEditor
 
         }
 
-        class RedactDoc
-        {
-            public string PageNum { get; set; }
-            public MemoryStream ImageStream { get; set; }
-            public string FileName { get; set; }
-        }
+    class RedactDoc
+    {
+        public string PageNum { get; set; }
+        public MemoryStream ImageStream { get; set; }
+        public string FileName { get; set; }
     }
+}
 }
 
 
