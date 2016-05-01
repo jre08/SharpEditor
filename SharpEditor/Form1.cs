@@ -39,6 +39,7 @@ namespace SharpEditor
         FileStream fs;
         List<RedactDoc> imgLst = new List<RedactDoc>();
         MemoryStream ms = new MemoryStream();
+        RedactDoc rDoc = new RedactDoc();
 
         private string[] allowedExtensions = {
     ".gif",
@@ -67,12 +68,28 @@ namespace SharpEditor
         //Sets the picturebox to the selected thumbnail (Listbox Item)
         private void listView1_SelectedIndexChanged_1(object sender, EventArgs e)
         {
-            pic = Image.FromStream(imgLst[SelectedDocnum()].ImageStream);
-                // pic = Image.FromFile(imgLst[listNum].FileName);
-                pictureBox1.Width = pic.Width;
-                pictureBox1.Height = pic.Height;
-                pictureBox1.Image = pic;
+            try
+            {
+                if (listView1.Items.Count > 1 )
+                {
+                    pic = Image.FromStream(imgLst[SelectedDocnum()].ImageStream);
+                    // pic = Image.FromFile(imgLst[listNum].FileName);
+                    pictureBox1.Width = pic.Width;
+                    pictureBox1.Height = pic.Height;
+                    pictureBox1.Image = pic;
+                }
+
+              
             }
+            catch (Exception ex)
+
+            {
+               
+
+            }
+
+
+        }
 
         //Clears Image list
         private void tlbrBtnClear_Click(object sender, EventArgs e)
@@ -117,8 +134,10 @@ namespace SharpEditor
                 //     resized = ResizeImage(resized, new Size(Convert.ToInt32(srcBmp.Width / 2.8), Convert.ToInt32(srcBmp.Height / 3.2)), true);
                 // }
                 int num = tempdi.GetFiles().Count();
-                resized.Save(Application.StartupPath + "\\temp\\temp" + num + ".png", System.Drawing.Imaging.ImageFormat.Png);
                 RedactDoc rDoc = new RedactDoc();
+                rDoc.PageNum = string.Format("Page {0}", num + 1);
+                resized.Save(Application.StartupPath + "\\temp\\temp" + num + ".png", System.Drawing.Imaging.ImageFormat.Png);
+               
                 rDoc.PageNum = string.Format("Page {0}", num +1);
                 ms = new MemoryStream();
                 resized.Save(ms, ImageFormat.Jpeg);
@@ -288,10 +307,8 @@ namespace SharpEditor
             Bitmap objNewBmp = new Bitmap(pictureBox1.Image);
             Graphics g = default(Graphics);
 
-            foreach (ListViewItem item in listView1.SelectedItems)
-            {
-                listNum = item.Index;
-            }
+
+            listNum = SelectedDocnum();
             g = Graphics.FromImage(objNewBmp);
             g = pictureBox1.CreateGraphics();
             ms = new MemoryStream();
@@ -389,6 +406,34 @@ namespace SharpEditor
             clearcache();
         }
 
+
+        //  Won't delete the correct file in the temp folder.  Seems to wanna delete highest number first.  Will delete temp0.png last.  Dont need this; need it to delte file name.
+        private void deleteToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+             System.IO.File.Delete(imgLst[SelectedDocnum()].FileName);
+            imgLst.RemoveAt(Globals.DocNum);
+            listView1.Items.RemoveAt(Globals.DocNum);
+            //imageList1.Images.RemoveAt(Globals.DocNum);
+            listView1.Refresh();
+
+           
+            //listView1_SelectedIndexChanged_1(sender,e);
+            if (listView1.Items.Count > 0)
+            {
+                listView1.Items[0].Selected = true;
+                //System.IO.File.Delete(imgLst[SelectedDocnum()].FileName);
+            }
+                
+
+            if (listView1.Items.Count == 0 )
+            {
+
+                pictureBox1.Image = null;
+                System.IO.File.Delete(Application.StartupPath + "\\temp\\temp0.png");
+            }
+
+        }
+
         //Imports a PDF then calls the PDFtoJpg procedure to convert to image files
         void ToolStripButton1Click(object sender, EventArgs e)
         {
@@ -453,24 +498,22 @@ namespace SharpEditor
 		}
 		void Button1Click(object sender, EventArgs e)
 		{
-			foreach (ListViewItem item in listView1.SelectedItems)
-            {
-                listNum = item.Index;
+                listNum = SelectedDocnum();
                 pic = Image.FromStream(imgLst[listNum].ImageStream);
                 // pic = Image.FromFile(imgLst[listNum].FileName);
                 //srcBmp.SelectActiveFrame(FrameDimension.Page, item.ImageIndex)
                 //PictureBox1.Image = ResizeImage(srcBmp, New Size(PictureBox1.Width, PictureBox1.Height))
                 pic.RotateFlip(RotateFlipType.Rotate90FlipNone);
-    pictureBox1.Width = pic.Width;
+                pictureBox1.Width = pic.Width;
                 pictureBox1.Height = pic.Height;
                 pictureBox1.Image = pic;
                 ms = new MemoryStream();
-            pic.Save(ms, ImageFormat.Png);
-            imgLst[listNum].ImageStream = ms;
-            imageList1.Images[listNum] = new Bitmap(pic, 128, 128);
-            listView1.RedrawItems(listNum, listNum, false);
+                pic.Save(ms, ImageFormat.Png);
+                imgLst[listNum].ImageStream = ms;
+                imageList1.Images[listNum] = new Bitmap(pic, 128, 128);
+                listView1.RedrawItems(listNum, listNum, false);
 
-        }
+        
 		}
 #endregion
 
