@@ -17,8 +17,7 @@ using PdfSharp;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
-
-
+using PdfSharp.Pdf.Security;
 
 namespace SharpEditor
 {
@@ -192,7 +191,7 @@ namespace SharpEditor
 
         private void PictureBox1_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left & trckbrEdit.Value == 1)
+            if (e.Button == MouseButtons.Left & Globals.Editmode)
             {
                 rubberBanding = true;
                 startCorner = e.Location;
@@ -217,7 +216,7 @@ namespace SharpEditor
         private void PictureBox1_MouseUp(object sender, System.Windows.Forms.MouseEventArgs e)
         {
 
-            if (e.Button == MouseButtons.Left & trckbrEdit.Value == 1)
+            if (e.Button == MouseButtons.Left & Globals.Editmode)
             {
                 System.Drawing.Image img = default(System.Drawing.Image);
                 //sets the current page as image.
@@ -260,6 +259,7 @@ namespace SharpEditor
 
                 //
                 savemouse();
+               
             }
             //pn.Dispose()
 
@@ -272,8 +272,9 @@ namespace SharpEditor
                 e.Graphics.DrawRectangle(pn, rubberBand);
                 SolidBrush b = new SolidBrush(Color.White);
                 e.Graphics.FillRectangle(b, rubberBand);
+                
             }
-
+            
         }
 
         #endregion
@@ -345,9 +346,42 @@ namespace SharpEditor
         {
             Bitmap myBitmap1 = new Bitmap(pictureBox1.Width, pictureBox1.Height);
             pictureBox1.DrawToBitmap(myBitmap1, new Rectangle(0, 0, pictureBox1.Width, pictureBox1.Height));
-            e.Graphics.DrawImage(myBitmap1, 0, 0);
+            // i.HorizontalResolution = pixels per inch of the image
+            // i.VerticalResoulutin = ppi of image again
+
+            // e.MarginBounds.Width = printable width in 100 ppi
+            // e.MarginBounds.Height = printable height in 100 ppi
+
+            float newWidth = myBitmap1.Width  * 100 / myBitmap1.HorizontalResolution;  // Convert to same units (100 ppi) as e.MarginBounds.Width
+            float newHeight = myBitmap1.Height  * 100 / myBitmap1.VerticalResolution;   // Convert to same units (100 ppi) as e.MarginBounds.Height
+
+            float widthFactor = newWidth / e.PageBounds.Width;
+            float heightFactor = newHeight / e.PageBounds.Height;
+
+
+            if (widthFactor > 1 | heightFactor > 1) // if the image is wider or taller than the printable area then adjust...
+            {
+                if (widthFactor > heightFactor)
+                {
+                    newWidth = newWidth / widthFactor;
+                    newHeight = newHeight / widthFactor;
+                }
+                else
+                {
+                     newWidth = newWidth / heightFactor;
+                    newHeight = newHeight / heightFactor;
+                }
+            }
+
+            e.Graphics.DrawImage(myBitmap1, 0, 0, (int)newWidth, (int)newHeight);
+            //e.Graphics.DrawImage(myBitmap1, 0, 0);
+            //e.Graphics.DrawImage(myBitmap1, e.MarginBounds);
             myBitmap1.Dispose();
         }
+
+       
+            
+        
 
         //Prints the myPrinDocument2 
         private void btnPrintPicture_Click(object sender, EventArgs e)
@@ -434,6 +468,24 @@ namespace SharpEditor
 
         }
 
+        private void metroButton1_Click(object sender, EventArgs e)
+        {
+            if (metroButton1.Text == "Edit On")
+            {
+                metroButton1.Highlight = false;
+                metroButton1.Text = "Edit Off";
+                listView1.Focus();
+                Globals.Editmode = false;
+            } 
+            else if (metroButton1.Text == "Edit Off")
+            {
+                metroButton1.Highlight = true;
+                metroButton1.Text = "Edit On";
+                listView1.Focus();
+                Globals.Editmode = true;
+            }
+        }
+
         //Imports a PDF then calls the PDFtoJpg procedure to convert to image files
         void ToolStripButton1Click(object sender, EventArgs e)
         {
@@ -442,10 +494,24 @@ namespace SharpEditor
             { // Test result.
             	this.Cursor = Cursors.WaitCursor;
                 string outputpath = Application.StartupPath + "\\temp\\pdf\\pdf";
-                PdfDocument inputDocument1 = PdfReader.Open(openPDFDialog.FileName, PdfDocumentOpenMode.Import);
-                Debug.Print(string.Format("{0}", inputDocument1.PageCount));
-                progressBar1.Maximum = inputDocument1.PageCount * 2;
-                PdfToJpg(openPDFDialog.FileName, outputpath);
+                PdfDocument document;
+                try
+                {
+                    document = PdfReader.Open(openPDFDialog.FileName, "dcfpdf");
+                    progressBar1.Maximum = document.PageCount * 2;
+                    PdfToJpg(openPDFDialog.FileName, outputpath);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
+                //progressBar1.Maximum = document.PageCount * 2;
+                //PdfToJpg(openPDFDialog.FileName, outputpath);
+                //PdfDocument inputDocument1 = PdfReader.Open(openPDFDialog.FileName, PdfDocumentOpenMode.Import);
+                //PdfSecuritySettings securitySettings = inputDocument1.SecuritySettings;
+
+                // Debug.Print(string.Format("{0}", inputDocument1.PageCount));
+
             }
         }
 
@@ -560,6 +626,7 @@ namespace SharpEditor
 
             public static int DocNum;
             public static DirectoryInfo tempdi = new DirectoryInfo(@Application.StartupPath + "\\temp\\");
+            public static bool Editmode = false;
 
 
         }
