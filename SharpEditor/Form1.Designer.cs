@@ -42,21 +42,23 @@
             this.btnOpenImage = new System.Windows.Forms.ToolStripButton();
             this.btnImportFolder = new System.Windows.Forms.ToolStripButton();
             this.toolStripButton2 = new System.Windows.Forms.ToolStripButton();
-            this.saveToolStripButton = new System.Windows.Forms.ToolStripButton();
+            this.saveToolStripButton = new System.Windows.Forms.ToolStripDropDownButton();
+            this.saveSelectedToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveAllToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.printToolStripButton = new System.Windows.Forms.ToolStripButton();
             this.tlbrBtnClear = new System.Windows.Forms.ToolStripButton();
             this.toolStripSeparator = new System.Windows.Forms.ToolStripSeparator();
             this.helpToolStripButton = new System.Windows.Forms.ToolStripButton();
-            this.trckbrEdit = new System.Windows.Forms.TrackBar();
             this.openPDFDialog = new System.Windows.Forms.OpenFileDialog();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.button1 = new System.Windows.Forms.Button();
             this.metroButton1 = new MetroFramework.Controls.MetroButton();
+            this.saveSelectedToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.saveAllToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.cntxtMenuDocList.SuspendLayout();
             this.panel1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.toolStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.trckbrEdit)).BeginInit();
             this.SuspendLayout();
             // 
             // listView1
@@ -76,16 +78,18 @@
             // cntxtMenuDocList
             // 
             this.cntxtMenuDocList.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.deleteToolStripMenuItem});
+            this.deleteToolStripMenuItem,
+            this.saveSelectedToolStripMenuItem1,
+            this.saveAllToolStripMenuItem1});
             this.cntxtMenuDocList.Name = "cntxtMenuDocList";
             this.cntxtMenuDocList.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.cntxtMenuDocList.Size = new System.Drawing.Size(132, 26);
+            this.cntxtMenuDocList.Size = new System.Drawing.Size(153, 92);
             // 
             // deleteToolStripMenuItem
             // 
             this.deleteToolStripMenuItem.Name = "deleteToolStripMenuItem";
             this.deleteToolStripMenuItem.ShortcutKeys = System.Windows.Forms.Keys.Delete;
-            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(131, 22);
+            this.deleteToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
             this.deleteToolStripMenuItem.Text = "Delete";
             this.deleteToolStripMenuItem.Click += new System.EventHandler(this.deleteToolStripMenuItem_Click);
             // 
@@ -178,14 +182,30 @@
             // 
             // saveToolStripButton
             // 
+            this.saveToolStripButton.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.saveSelectedToolStripMenuItem,
+            this.saveAllToolStripMenuItem});
             this.saveToolStripButton.Image = ((System.Drawing.Image)(resources.GetObject("saveToolStripButton.Image")));
             this.saveToolStripButton.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.saveToolStripButton.Name = "saveToolStripButton";
             this.saveToolStripButton.Padding = new System.Windows.Forms.Padding(0, 0, 10, 0);
-            this.saveToolStripButton.Size = new System.Drawing.Size(61, 22);
+            this.saveToolStripButton.Size = new System.Drawing.Size(70, 22);
             this.saveToolStripButton.Text = "&Save";
             this.saveToolStripButton.ToolTipText = "Save File";
-            this.saveToolStripButton.Click += new System.EventHandler(this.saveToolStripButton_Click);
+            // 
+            // saveSelectedToolStripMenuItem
+            // 
+            this.saveSelectedToolStripMenuItem.Name = "saveSelectedToolStripMenuItem";
+            this.saveSelectedToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.saveSelectedToolStripMenuItem.Text = "Save Selected";
+            this.saveSelectedToolStripMenuItem.Click += new System.EventHandler(this.saveSelectedToolStripMenuItem_Click);
+            // 
+            // saveAllToolStripMenuItem
+            // 
+            this.saveAllToolStripMenuItem.Name = "saveAllToolStripMenuItem";
+            this.saveAllToolStripMenuItem.Size = new System.Drawing.Size(145, 22);
+            this.saveAllToolStripMenuItem.Text = "Save all";
+            this.saveAllToolStripMenuItem.Click += new System.EventHandler(this.saveAllToolStripMenuItem_Click);
             // 
             // printToolStripButton
             // 
@@ -224,15 +244,6 @@
             this.helpToolStripButton.Size = new System.Drawing.Size(30, 22);
             this.helpToolStripButton.Text = "He&lp";
             // 
-            // trckbrEdit
-            // 
-            this.trckbrEdit.LargeChange = 1;
-            this.trckbrEdit.Location = new System.Drawing.Point(315, 28);
-            this.trckbrEdit.Maximum = 1;
-            this.trckbrEdit.Name = "trckbrEdit";
-            this.trckbrEdit.Size = new System.Drawing.Size(58, 45);
-            this.trckbrEdit.TabIndex = 3;
-            // 
             // openPDFDialog
             // 
             this.openPDFDialog.FileName = "openFile";
@@ -248,7 +259,7 @@
             // 
             // button1
             // 
-            this.button1.Location = new System.Drawing.Point(414, 28);
+            this.button1.Location = new System.Drawing.Point(613, 0);
             this.button1.Name = "button1";
             this.button1.Size = new System.Drawing.Size(75, 29);
             this.button1.TabIndex = 5;
@@ -260,13 +271,27 @@
             // 
             this.metroButton1.AllowDrop = true;
             this.metroButton1.DisplayFocus = true;
-            this.metroButton1.Location = new System.Drawing.Point(495, 23);
+            this.metroButton1.Location = new System.Drawing.Point(495, 0);
             this.metroButton1.Name = "metroButton1";
-            this.metroButton1.Size = new System.Drawing.Size(112, 35);
+            this.metroButton1.Size = new System.Drawing.Size(112, 29);
             this.metroButton1.TabIndex = 6;
             this.metroButton1.Text = "Edit Off";
             this.metroButton1.UseSelectable = true;
             this.metroButton1.Click += new System.EventHandler(this.metroButton1_Click);
+            // 
+            // saveSelectedToolStripMenuItem1
+            // 
+            this.saveSelectedToolStripMenuItem1.Name = "saveSelectedToolStripMenuItem1";
+            this.saveSelectedToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.saveSelectedToolStripMenuItem1.Text = "Save Selected";
+            this.saveSelectedToolStripMenuItem1.Click += new System.EventHandler(this.saveSelectedToolStripMenuItem1_Click);
+            // 
+            // saveAllToolStripMenuItem1
+            // 
+            this.saveAllToolStripMenuItem1.Name = "saveAllToolStripMenuItem1";
+            this.saveAllToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
+            this.saveAllToolStripMenuItem1.Text = "Save All";
+            this.saveAllToolStripMenuItem1.Click += new System.EventHandler(this.saveAllToolStripMenuItem1_Click);
             // 
             // Form1
             // 
@@ -280,7 +305,6 @@
             this.Controls.Add(this.toolStrip1);
             this.Controls.Add(this.panel1);
             this.Controls.Add(this.listView1);
-            this.Controls.Add(this.trckbrEdit);
             this.Name = "Form1";
             this.Text = "Form1";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
@@ -290,7 +314,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.toolStrip1.ResumeLayout(false);
             this.toolStrip1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.trckbrEdit)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -305,10 +328,8 @@
         private System.Windows.Forms.OpenFileDialog openFile;
         private System.Windows.Forms.ImageList imageList1;
         private System.Windows.Forms.ToolStrip toolStrip1;
-        private System.Windows.Forms.ToolStripButton saveToolStripButton;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator;
         private System.Windows.Forms.ToolStripButton helpToolStripButton;
-        private System.Windows.Forms.TrackBar trckbrEdit;
         private System.Windows.Forms.ToolStripButton toolStripButton2;
         private System.Windows.Forms.OpenFileDialog openPDFDialog;
         private System.Windows.Forms.ToolStripButton btnOpenImage;
@@ -320,6 +341,11 @@
         private System.Windows.Forms.ContextMenuStrip cntxtMenuDocList;
         private System.Windows.Forms.ToolStripMenuItem deleteToolStripMenuItem;
         private MetroFramework.Controls.MetroButton metroButton1;
+        private System.Windows.Forms.ToolStripDropDownButton saveToolStripButton;
+        private System.Windows.Forms.ToolStripMenuItem saveAllToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem saveSelectedToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem saveSelectedToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem saveAllToolStripMenuItem1;
     }
 }
 

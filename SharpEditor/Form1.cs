@@ -69,7 +69,7 @@ namespace SharpEditor
         {
             try
             {
-                if (listView1.Items.Count > 1 )
+                if (listView1.Items.Count >= 0 )
                 {
                     pic = Image.FromStream(imgLst[SelectedDocnum()].ImageStream);
                     // pic = Image.FromFile(imgLst[listNum].FileName);
@@ -100,7 +100,7 @@ namespace SharpEditor
         private void saveToolStripButton_Click(object sender, EventArgs e)
         {
             //savemouse();
-            tiff2PDF();
+            //tiff2PDF();
         }
 
        
@@ -127,7 +127,8 @@ namespace SharpEditor
                 srcBmp.SelectActiveFrame(FrameDimension.Page, i);
 
                 //resized = new Bitmap(srcBmp, srcBmp.Width, srcBmp.Height);
-                resized = new Bitmap(srcBmp, Convert.ToInt32(srcBmp.Width / 2.8), Convert.ToInt32(srcBmp.Height / 2.8));
+                double resizefactor = 2.3;
+                resized = new Bitmap(srcBmp, Convert.ToInt32(srcBmp.Width / resizefactor), Convert.ToInt32(srcBmp.Height / resizefactor));
                 // if (srcBmp.Width > 1200)
                 // {
                 //     resized = ResizeImage(resized, new Size(Convert.ToInt32(srcBmp.Width / 2.8), Convert.ToInt32(srcBmp.Height / 3.2)), true);
@@ -486,6 +487,23 @@ namespace SharpEditor
             }
         }
 
+        private void saveAllToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            tiff2PDF();
+        }
+
+        private void saveSelectedToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            Select2PDF();
+        }
+
+        private void saveSelectedToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            Select2PDF();
+        }
+
+        // }
+
         //Imports a PDF then calls the PDFtoJpg procedure to convert to image files
         void ToolStripButton1Click(object sender, EventArgs e)
         {
@@ -515,11 +533,49 @@ namespace SharpEditor
             }
         }
 
+        private void saveAllToolStripMenuItem1_Click(object sender, EventArgs e)
+        {
+            tiff2PDF();
+        }
+
 
 
 
 
         #region "TIFF To PDF  **Using PDFSHARP .NET**"
+
+        public void Select2PDF()
+        {
+            foreach (ListViewItem Item in listView1.SelectedItems)
+            {
+                Debug.Print(Item.Index.ToString());
+                PdfDocument doc = new PdfDocument();
+                //int pageCount = listView1.Items.Count;
+                //for (int i = 0; i <= pageCount - 1; i++)
+                //{
+                PdfPage page = new PdfPage();
+
+                //Image tiffImg = tiff.getTiffImage(fileName, i);
+                //Image tiffImg = Image.FromFile(Application.StartupPath + "temp" + i + ".png");
+                Image tiffImg = Image.FromStream(imgLst[Item.Index].ImageStream);
+
+                XImage img = XImage.FromGdiPlusImage(tiffImg);
+
+                page.Width = img.PointWidth;
+                page.Height = img.PointHeight;
+                doc.Pages.Add(page);
+
+                //XGraphics xgr = XGraphics.FromPdfPage(doc.Pages(i));
+                XGraphics xgr = XGraphics.FromPdfPage(doc.Pages[0]);
+
+                xgr.DrawImage(img, 0, 0);
+                string filename = "temp" + (Item.Index +1) + ".pdf";
+                doc.Save(filename);
+
+                doc.Close();
+            }
+
+        }
         public void tiff2PDF()
         {
              PdfDocument doc = new PdfDocument();
@@ -548,6 +604,8 @@ namespace SharpEditor
             doc.Save("temp.pdf");
 
             doc.Close();
+
+            Process.Start("temp.pdf");
 
         }
 		void PrintToolStripButtonClick(object sender, EventArgs e)
