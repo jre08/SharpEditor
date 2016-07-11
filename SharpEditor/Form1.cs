@@ -1,28 +1,31 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
+//using System.ComponentModel;
+//using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+//using System.Text;
+//using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.Drawing.Printing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
-using System.Web;
+//using System.Web;
 using System.Diagnostics;
-using PdfSharp;
+//using PdfSharp;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
-using PdfSharp.Pdf.Security;
+//using PdfSharp.Pdf.Security;
+using DocEngine;
+using MetroFramework.Forms;
+
 
 namespace SharpEditor
 {
 
-    public partial class Form1 : Form
+    public partial class Form1 : MetroForm
     {
         DirectoryInfo tempdi;
         Point startCorner, up, down;
@@ -39,6 +42,8 @@ namespace SharpEditor
         List<RedactDoc> imgLst = new List<RedactDoc>();
         MemoryStream ms = new MemoryStream();
         RedactDoc rDoc = new RedactDoc();
+        Document _Doc = new Document(1,"Doc1");
+        
 
         private string[] allowedExtensions = {
     ".gif",
@@ -52,6 +57,7 @@ namespace SharpEditor
         public Form1()
         {
             InitializeComponent();
+            
             ImgList();
         }
 
@@ -71,7 +77,8 @@ namespace SharpEditor
             {
                 if (listView1.Items.Count >= 0 )
                 {
-                    pic = Image.FromStream(imgLst[SelectedDocnum()].ImageStream);
+                    //pic = Image.FromStream(imgLst[SelectedDocnum()].ImageStream);
+                    pic =  Image.FromStream(_Doc.Pages[SelectedDocnum()].ImageStream);
                     // pic = Image.FromFile(imgLst[listNum].FileName);
                     pictureBox1.Width = pic.Width;
                     pictureBox1.Height = pic.Height;
@@ -109,15 +116,57 @@ namespace SharpEditor
         {
             DialogResult result = openFile.ShowDialog(); // Show the dialog.
             if (result == DialogResult.OK) // Test result.
-                addimage2(openFile.FileName);
+               addimage(openFile.FileName);
             ImgList();
+          
         }
 
         //Adds an Image to Image <rDoc>  for editing and storage (Stores in memory compared to old 'void addimage' disk method.
-        void addimage2(string filename)
+//        void addimage2(string filename)
+//        {
+//
+//            tempdi = Globals.tempdi;
+//            fs = File.Open(filename, FileMode.Open, FileAccess.ReadWrite);
+//            srcBmp = (Bitmap)Bitmap.FromStream(fs);
+//            totalPages = Convert.ToInt32(srcBmp.GetFrameCount(FrameDimension.Page) - 1);
+//            int i;
+//            for (i = 0; i <= totalPages; i++)
+//            {
+//                srcBmp.SelectActiveFrame(FrameDimension.Page, i);
+//
+//                //resized = new Bitmap(srcBmp, srcBmp.Width, srcBmp.Height);
+//                double resizefactor = 2.3;
+//                resized = new Bitmap(srcBmp, Convert.ToInt32(srcBmp.Width / resizefactor), Convert.ToInt32(srcBmp.Height / resizefactor));
+//                // if (srcBmp.Width > 1200)
+//                // {
+//                //     resized = ResizeImage(resized, new Size(Convert.ToInt32(srcBmp.Width / 2.8), Convert.ToInt32(srcBmp.Height / 3.2)), true);
+//                // }
+//                int num = tempdi.GetFiles().Count();
+//                RedactDoc rDoc = new RedactDoc();
+//                rDoc.PageNum = string.Format("Page {0}", num + 1);
+//                resized.Save(Application.StartupPath + "\\temp\\temp" + num + ".png", System.Drawing.Imaging.ImageFormat.Png);
+//               
+//                rDoc.PageNum = string.Format("Page {0}", num +1);
+//                ms = new MemoryStream();
+//                resized.Save(ms, ImageFormat.Jpeg);
+//                rDoc.ImageStream = ms;
+//                rDoc.FileName = Application.StartupPath + "\\temp\\temp" + num + ".png";
+//                imgLst.Add(rDoc);
+//                ms = null;
+//                srcBmp.Dispose();
+//            	srcBmp = null;
+//
+//                resized.Dispose();
+//            }
+//            fs.Dispose();
+//            ProgressBar1.PerformStep();
+//
+//            fs = null;
+//        }
+
+        void addimage(string filename)
         {
 
-            tempdi = Globals.tempdi;
             fs = File.Open(filename, FileMode.Open, FileAccess.ReadWrite);
             srcBmp = (Bitmap)Bitmap.FromStream(fs);
             totalPages = Convert.ToInt32(srcBmp.GetFrameCount(FrameDimension.Page) - 1);
@@ -127,23 +176,18 @@ namespace SharpEditor
                 srcBmp.SelectActiveFrame(FrameDimension.Page, i);
 
                 //resized = new Bitmap(srcBmp, srcBmp.Width, srcBmp.Height);
-                double resizefactor = 2.3;
+                double resizefactor = 2.6;
                 resized = new Bitmap(srcBmp, Convert.ToInt32(srcBmp.Width / resizefactor), Convert.ToInt32(srcBmp.Height / resizefactor));
                 // if (srcBmp.Width > 1200)
                 // {
                 //     resized = ResizeImage(resized, new Size(Convert.ToInt32(srcBmp.Width / 2.8), Convert.ToInt32(srcBmp.Height / 3.2)), true);
                 // }
-                int num = tempdi.GetFiles().Count();
-                RedactDoc rDoc = new RedactDoc();
-                rDoc.PageNum = string.Format("Page {0}", num + 1);
+                //int num = Globals.tempdi.GetFiles().Count();
+                int num = _Doc.Pages.Count();
                 resized.Save(Application.StartupPath + "\\temp\\temp" + num + ".png", System.Drawing.Imaging.ImageFormat.Png);
-               
-                rDoc.PageNum = string.Format("Page {0}", num +1);
                 ms = new MemoryStream();
-                resized.Save(ms, ImageFormat.Jpeg);
-                rDoc.ImageStream = ms;
-                rDoc.FileName = Application.StartupPath + "\\temp\\temp" + num + ".png";
-                imgLst.Add(rDoc);
+                resized.Save(ms, ImageFormat.Png);
+                _Doc.Pages.Add(new Page(num +1, ms, Application.StartupPath + "\\temp\\temp" + (num -1) + ".png"));
                 ms = null;
                 srcBmp.Dispose();
             	srcBmp = null;
@@ -151,12 +195,10 @@ namespace SharpEditor
                 resized.Dispose();
             }
             fs.Dispose();
-            progressBar1.PerformStep();
+            ProgressBar1.PerformStep();
 
             fs = null;
         }
-
-        
         
         //Reduces Image Size
         public static Image ResizeImage(Image image, Size size, bool preserveAspectRatio)
@@ -260,6 +302,7 @@ namespace SharpEditor
 
                 //
                 savemouse();
+                rubberBand = Rectangle.Empty;
                
             }
             //pn.Dispose()
@@ -289,16 +332,18 @@ namespace SharpEditor
             tempdi = Globals.tempdi;
             dynamic num = 0;
             int i;
-            for (i = 0; i < imgLst.Count(); i++)
+            for (i = 0; i < _Doc.Pages.Count(); i++)
             {
                 
                 //imageList1.Images.Add("ico" + i, Image.FromStream(imgLst[num].ImageStream));
-                imageList1.Images.Add(imgLst[i].PageNum, Image.FromStream(imgLst[num].ImageStream));
-                listView1.Items.Add(Convert.ToString(num), imgLst[i].PageNum, num);
+                //imageList1.Images.Add(imgLst[i].PageNum, Image.FromStream(imgLst[num].ImageStream));
+                imageList1.Images.Add(String.Format("{0}",_Doc.Pages[i].PageNum), Image.FromStream(_Doc.Pages[num].ImageStream));
+                //listView1.Items.Add(Convert.ToString(num), _Doc.Pages[i].PageNum, num);
+                listView1.Items.Add(Convert.ToString(_Doc.Pages[i].PageNum),num);
                 num++;
             }
             this.Cursor = Cursors.Default;
-            progressBar1.Value = 0;
+            ProgressBar1.Value = 0;
             
         }
 
@@ -316,7 +361,7 @@ namespace SharpEditor
             ms = new MemoryStream();
             objNewBmp.Save(ms, ImageFormat.Png);
             objNewBmp.Save(Application.StartupPath + "\\temp\\temp" + listNum + ".png", System.Drawing.Imaging.ImageFormat.Png);
-            imgLst[listNum].ImageStream = ms;
+            _Doc.Pages[listNum].ImageStream = ms;
             imageList1.Images[listNum] = new Bitmap(objNewBmp, 128, 128);
             listView1.RedrawItems(listNum, listNum, false);
         }
@@ -332,7 +377,7 @@ namespace SharpEditor
                 {
                     if (extension == System.IO.Path.GetExtension(fi.FullName))
                     {
-                        addimage2(fi.FullName);
+                        addimage(fi.FullName);
 
                     }
                 }
@@ -340,6 +385,23 @@ namespace SharpEditor
 
             ImgList();
         }
+        
+        public void ImportPDF(string dirPath)
+        {
+            DirectoryInfo di = new DirectoryInfo(dirPath);
+            
+            	int num = di.GetFiles().Count();
+            	int i;
+            	
+                for (i = 1; i <= num; i++)
+                {
+                	addimage(Application.StartupPath + "\\temp\\pdf\\pdf" + i + ".png");                  
+                }
+            
+
+            ImgList();
+        }
+
 
         //Sets up the Print Document from the Picture Box image
         private void myPrintDocument2_PrintPage(System.Object sender, System.Drawing.Printing.PrintPageEventArgs e)
@@ -378,11 +440,7 @@ namespace SharpEditor
             //e.Graphics.DrawImage(myBitmap1, 0, 0);
             //e.Graphics.DrawImage(myBitmap1, e.MarginBounds);
             myBitmap1.Dispose();
-        }
-
-       
-            
-        
+        }       
 
         //Prints the myPrinDocument2 
         private void btnPrintPicture_Click(object sender, EventArgs e)
@@ -431,9 +489,10 @@ namespace SharpEditor
             //                addimage2(fi.FullName);
             //                //ImageList1.Images.Add(Image.FromFile(dirFile))
             //            }
-            progressBar1.Value = progressBar1.Maximum / 2;
+            ProgressBar1.Value = ProgressBar1.Maximum / 2;
 
-            ImportDir(Application.StartupPath + "\\temp\\pdf\\");
+            //ImportDir(Application.StartupPath + "\\temp\\pdf\\");
+            ImportPDF(Application.StartupPath + "\\temp\\pdf\\");
         }
 
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
@@ -471,20 +530,7 @@ namespace SharpEditor
 
         private void metroButton1_Click(object sender, EventArgs e)
         {
-            if (metroButton1.Text == "Edit On")
-            {
-                metroButton1.Highlight = false;
-                metroButton1.Text = "Edit Off";
-                listView1.Focus();
-                Globals.Editmode = false;
-            } 
-            else if (metroButton1.Text == "Edit Off")
-            {
-                metroButton1.Highlight = true;
-                metroButton1.Text = "Edit On";
-                listView1.Focus();
-                Globals.Editmode = true;
-            }
+          
         }
 
         private void saveAllToolStripMenuItem_Click(object sender, EventArgs e)
@@ -516,14 +562,14 @@ namespace SharpEditor
                 try
                 {
                     document = PdfReader.Open(openPDFDialog.FileName, "dcfpdf");
-                    progressBar1.Maximum = document.PageCount * 2;
+                    ProgressBar1.Maximum = document.PageCount * 2;
                     PdfToJpg(openPDFDialog.FileName, outputpath);
                 }
                 catch (Exception ex)
                 {
                     Debug.WriteLine(ex.Message);
                 }
-                //progressBar1.Maximum = document.PageCount * 2;
+                //ProgressBar1.Maximum = document.PageCount * 2;
                 //PdfToJpg(openPDFDialog.FileName, outputpath);
                 //PdfDocument inputDocument1 = PdfReader.Open(openPDFDialog.FileName, PdfDocumentOpenMode.Import);
                 //PdfSecuritySettings securitySettings = inputDocument1.SecuritySettings;
@@ -537,12 +583,50 @@ namespace SharpEditor
         {
             tiff2PDF();
         }
+        
+        void SaveSeperatedToolStripMenuItemClick(object sender, EventArgs e)
+		{
+        	Seperated2PDF();
+		} 
 
 
 
 
 
         #region "TIFF To PDF  **Using PDFSHARP .NET**"
+        
+        public void Seperated2PDF()
+        {
+        	 
+            //int pageCount = tiff.getPageCount(fileName);
+            int pageCount = listView1.Items.Count;
+            for (int i = 0; i <= pageCount - 1; i++)
+            {
+            	PdfDocument doc = new PdfDocument();
+                PdfPage page = new PdfPage();
+
+                //Image tiffImg = tiff.getTiffImage(fileName, i);
+                //Image tiffImg = Image.FromFile(Application.StartupPath + "temp" + i + ".png");
+                Image tiffImg = Image.FromStream(imgLst[i].ImageStream);
+
+                XImage img = XImage.FromGdiPlusImage(tiffImg);
+
+                page.Width = img.PointWidth;
+                page.Height = img.PointHeight;
+                doc.Pages.Add(page);
+
+                //XGraphics xgr = XGraphics.FromPdfPage(doc.Pages(i));
+                XGraphics xgr = XGraphics.FromPdfPage(doc.Pages[0]);
+
+                xgr.DrawImage(img, 0, 0);
+                int pagenum = i + 1;
+                string filename = String.Format("Page {0}.pdf", pagenum);
+                doc.Save(filename);
+
+                doc.Close();
+            }
+
+    }
 
         public void Select2PDF()
         {
@@ -622,21 +706,7 @@ namespace SharpEditor
 		}
 		void Button1Click(object sender, EventArgs e)
 		{
-                listNum = SelectedDocnum();
-                pic = Image.FromStream(imgLst[listNum].ImageStream);
-                // pic = Image.FromFile(imgLst[listNum].FileName);
-                //srcBmp.SelectActiveFrame(FrameDimension.Page, item.ImageIndex)
-                //PictureBox1.Image = ResizeImage(srcBmp, New Size(PictureBox1.Width, PictureBox1.Height))
-                pic.RotateFlip(RotateFlipType.Rotate90FlipNone);
-                pictureBox1.Width = pic.Width;
-                pictureBox1.Height = pic.Height;
-                pictureBox1.Image = pic;
-                ms = new MemoryStream();
-                pic.Save(ms, ImageFormat.Png);
-                imgLst[listNum].ImageStream = ms;
-                imageList1.Images[listNum] = new Bitmap(pic, 128, 128);
-                listView1.RedrawItems(listNum, listNum, false);
-
+               
         
 		}
 #endregion
@@ -673,7 +743,48 @@ namespace SharpEditor
             }
             return Globals.DocNum;
 
-        } 
+        }
+		void Button2Click(object sender, EventArgs e)
+		{
+			Metro NewForm = new Metro();
+			NewForm.Show();
+		}
+		void MetroToggle1CheckedChanged(object sender, EventArgs e)
+		{
+			if (!metroToggle1.Checked)
+            {
+				
+                //metroButton1.Highlight = false;
+                //metroButton1.Text = "Edit Off";
+                listView1.Focus();
+                Globals.Editmode = false;
+            } 
+            else if (metroToggle1.Checked)
+            {
+                //metroButton1.Highlight = true;
+                //metroButton1.Text = "Edit On";
+                listView1.Focus();
+                Globals.Editmode = true;
+		     }
+		}
+		void BtnRotateClick(object sender, EventArgs e)
+		{
+	  listNum = SelectedDocnum();
+                pic = Image.FromStream(_Doc.Pages[listNum].ImageStream );
+                // pic = Image.FromFile(imgLst[listNum].FileName);
+                //srcBmp.SelectActiveFrame(FrameDimension.Page, item.ImageIndex)
+                //PictureBox1.Image = ResizeImage(srcBmp, New Size(PictureBox1.Width, PictureBox1.Height))
+                pic.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                pictureBox1.Width = pic.Width;
+                pictureBox1.Height = pic.Height;
+                pictureBox1.Image = pic;
+                ms = new MemoryStream();
+                pic.Save(ms, ImageFormat.Png);
+                _Doc.Pages[listNum].ImageStream = ms;
+                imageList1.Images[listNum] = new Bitmap(pic, 128, 128);
+                listView1.RedrawItems(listNum, listNum, false);
+		}
+		
         
 
         //**End FORM CLASS **
@@ -689,14 +800,15 @@ namespace SharpEditor
 
         }
 
-    class RedactDoc
-    {
-        public string PageNum { get; set; }
-        public MemoryStream ImageStream { get; set; }
-        public string FileName { get; set; }
-    }
+            class RedactDoc
+            {
+                public string PageNum { get; set; }
+                public MemoryStream ImageStream { get; set; }
+                public string FileName { get; set; }
+            }
 }
 }
+
 
 
 
