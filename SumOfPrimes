@@ -1,0 +1,38 @@
+using System;
+
+
+namespace CodeEval
+{
+	class Program
+	{
+		public static void Main(string[] args)
+		{
+			int prime = 0;
+			for (int i = 2; i < 1000; i++) {
+				if (isPrime(i) == true){
+				prime = prime + i;
+				}
+			}
+			Console.Writeline(prime);
+			
+			// TODO: Implement Functionality Here
+			
+			//Console.Write("Press any key to continue . . . ");
+			//Console.ReadKey(true);
+		}
+		
+		public static bool isPrime(int number)
+{
+    int boundary = (int)Math.Floor(Math.Sqrt(number));
+
+    if (number == 1) return false;
+    if (number == 2) return true;
+
+    for (int i = 2; i <= boundary; ++i)  {
+        if (number % i == 0)  return false;
+    }
+
+    return true;        
+}
+	}
+}
